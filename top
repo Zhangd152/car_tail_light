@@ -1,0 +1,67 @@
+module car_tail_light(
+input [3:0] sw,
+input clk,
+output [1:0] led
+);
+
+reg [24:0] cnt;
+reg [1:0] led;
+
+
+parameter CNT_NUM = 24000000;                 //2s
+
+always @(posedge clk)
+begin
+	if(cnt>=CNT_NUM-1)
+		cnt=1'b0;
+	else if(cnt>=CNT_NUM/2)
+		begin
+			cnt<=cnt+1'b1;
+			case(sw)
+			4'b0000:begin//直行 都不亮
+				led[0]<=1;
+				led[1]<=1;
+			end
+			4'b1000:begin//左转 左灯亮
+				led[0]<=1;
+				led[1]<=0;
+			end
+			4'b0100:begin//右转 右灯亮
+				led[0]<=0;
+				led[1]<=1;
+			end
+			4'b0010:begin//临时停车或故障 都亮
+				led[0]<=0;
+				led[1]<=0;
+			end
+			4'b0001:begin//倒车 左右灯交替
+				led[0]<=0;
+				led[1]<=1;
+			end
+			default:begin
+				led[0]<=1;
+				led[1]<=1;
+			end
+			endcase
+		end
+	else begin//前一秒
+		cnt<=cnt+1'b1;
+		if(sw==4'b0010)begin//临时停车或故障 都亮
+			led[0]<=0;
+			led[1]<=0;
+			end
+		else if(sw==4'b0001)begin//倒车 左右灯交替
+				led[0]<=1;
+				led[1]<=0;
+			end
+		else begin
+			led[0]<=1;
+			led[1]<=1;
+			end
+		end
+end
+
+assign sled[1]=led[1];
+assign sled[0]=led[0];
+
+endmodule
